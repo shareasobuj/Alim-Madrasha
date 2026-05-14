@@ -4,15 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Majpara Alim Madrasha - Advanced Portal</title>
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <style>
-        :root { --primary: #1a2a6c; --secondary: #b21f1f; --accent: #00d2ff; --glass: rgba(255, 255, 255, 0.95); }
+        :root { --primary: #1a2a6c; --secondary: #b21f1f; --accent: #00d2ff; --glass: rgba(255, 255, 255, 0.95); --danger: #d63031; --success: #00b894; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Outfit', sans-serif; }
-        body { background: #f4f7f6; color: #333; }
+        body { background: #f4f7f6; color: #333; overflow-x: hidden; }
 
         /* Header & Brand */
         .top-header { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; padding: 25px 15px; text-align: center; position: sticky; top: 0; z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
@@ -35,71 +33,82 @@
         h3 { margin-bottom: 15px; color: var(--primary); display: flex; align-items: center; gap: 10px; }
 
         /* Form Styling */
-        input, select, textarea { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 12px; outline: none; font-size: 15px; }
-        input:focus { border-color: var(--accent); }
-        .btn { width: 100%; padding: 15px; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; transition: 0.3s; margin-top: 10px; }
+        input, select, textarea { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 12px; outline: none; font-size: 15px; background: #fff; }
+        input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+        .btn { width: 100%; padding: 15px; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; transition: 0.3s; margin-top: 10px; font-size: 16px; }
         .btn-primary { background: var(--primary); color: white; }
         .btn-primary:hover { opacity: 0.9; transform: scale(0.98); }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-success { background: var(--success); color: white; }
 
         /* Table & Lists */
         .data-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
         .data-table th { background: #f8f9fa; padding: 12px; text-align: left; border-bottom: 2px solid #eee; }
-        .data-table td { padding: 12px; border-bottom: 1px solid #eee; }
+        .data-table td { padding: 12px; border-bottom: 1px solid #eee; vertical-align: middle; }
 
         /* Grid for Teachers/Classes */
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .grid-card { background: #f8f9fa; padding: 15px; border-radius: 15px; text-align: center; cursor: pointer; }
-        
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-top: 15px; }
+        .teacher-card { background: #f8f9fa; padding: 20px; border-radius: 15px; text-align: center; border: 1px solid #eee; transition: 0.3s; position: relative; overflow: hidden; }
+        .teacher-card:hover { transform: translateY(-5px); box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        .teacher-card b { font-size: 18px; color: var(--primary); display: block; margin-bottom: 5px; }
+        .teacher-card p { font-size: 14px; color: #666; }
+        .delete-teacher-btn { position: absolute; top: 10px; right: 10px; background: rgba(214, 48, 49, 0.1); color: var(--danger); border: none; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; transition: 0.3s; opacity: 0.8; }
+        .delete-teacher-btn:hover { background: var(--danger); color: white; opacity: 1; }
+
         /* Auth Screen */
         .auth-overlay { position: fixed; inset: 0; background: white; z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .auth-card { width: 100%; max-width: 400px; padding: 30px; }
+
+        /* Floating Button for Admin Actions */
+        .floating-action-btn { position: fixed; bottom: 90px; right: 20px; background: var(--accent); color: white; border: none; border-radius: 50%; width: 60px; height: 60px; font-size: 24px; cursor: pointer; box-shadow: 0 5px 20px rgba(0,0,0,0.2); z-index: 900; transition: 0.3s; }
+        .floating-action-btn:hover { transform: rotate(90deg) scale(1.1); }
+        .admin-only { display: none; } /* Default state */
+
     </style>
 </head>
 <body>
 
-<!-- Login/Sign-up Overlay -->
 <div id="authScreen" class="auth-overlay">
-    <div class="card" style="width: 100%; max-width: 400px;">
-        <h2 style="text-align:center; color:var(--primary)">Staff Portal</h2>
-        <p style="text-align:center; font-size: 14px; margin-bottom: 20px;">মাজপাড়া আলিম মাদ্রাসা ডিজিটাল ম্যানেজমেন্ট</p>
-        <input type="email" id="userEmail" placeholder="Email Address">
-        <input type="password" id="userPass" placeholder="Password">
-        <button class="btn btn-primary" onclick="handleAuth('login')">Login</button>
-        <button class="btn" style="background:#eee" onclick="handleAuth('signup')">Create Account (Staff)</button>
+    <div class="card auth-card">
+        <h2 style="text-align:center; color:var(--primary); margin-bottom: 10px;">Majpara Staff Portal</h2>
+        <p style="text-align:center; font-size: 14px; margin-bottom: 25px; color: #666;">মাজপাড়া আলিম মাদ্রাসা ডিজিটাল ম্যানেজমেন্ট</p>
+        <input type="email" id="userEmail" placeholder="ইমেইল অ্যাড্রেস">
+        <input type="password" id="userPass" placeholder="পাসওয়ার্ড">
+        <button class="btn btn-primary" onclick="handleAuth('login')"><i class="fa fa-sign-in-alt"></i> Login</button>
+        <button class="btn" style="background:#eee" onclick="handleAuth('signup')">Create Account (Admin/Staff)</button>
     </div>
 </div>
 
-<!-- Main App Header -->
 <div class="top-header">
-    <h2 id="currentTabTitle">Home Dashboard</h2>
+    <h2 id="currentTabTitle" style="font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Home Dashboard</h2>
     <div style="font-size: 12px; margin-top: 5px;">
         <span id="statusDot" class="status-dot" style="background: #ccc;"></span>
-        <span id="statusText">Checking Connection...</span>
+        <span id="statusText">Connecting to Database...</span>
     </div>
 </div>
 
 <div class="container">
     
-    <!-- Home Page -->
     <div id="home" class="page active-page">
         <div class="card" style="background: linear-gradient(45deg, #1a2a6c, #3a7bd5); color: white;">
             <h2>আসসালামু আলাইকুম</h2>
-            <p>মাদ্রাসার ডিজিটাল ড্যাশবোর্ডে আপনাকে স্বাগতম।</p>
+            <p>মাজপাড়া আলিম মাদ্রাসার ডিজিটাল ড্যাশবোর্ডে আপনাকে স্বাগতম। মাদ্রাসার সকল তথ্য এখান থেকে ম্যানেজ করুন।</p>
         </div>
         <div class="grid">
-            <div class="grid-card" onclick="showPage('records')"><i class="fa fa-users"></i><br>Students</div>
-            <div class="grid-card" onclick="showPage('teachers')"><i class="fa fa-chalkboard-teacher"></i><br>Teachers</div>
-            <div class="grid-card" onclick="showPage('payment')"><i class="fa fa-wallet"></i><br>Fees</div>
-            <div class="grid-card" onclick="showPage('contact')"><i class="fa fa-phone"></i><br>Help</div>
+            <div class="grid-card" onclick="showPage('records')"><i class="fa fa-users" style="color:#0984e3; font-size: 30px; margin-bottom: 10px;"></i><br>Students</div>
+            <div class="grid-card" onclick="showPage('teachers')"><i class="fa fa-chalkboard-teacher" style="color:#ff7675; font-size: 30px; margin-bottom: 10px;"></i><br>Teachers</div>
+            <div class="grid-card" onclick="showPage('payment')"><i class="fa fa-wallet" style="color:#00b894; font-size: 30px; margin-bottom: 10px;"></i><br>Fees</div>
+            <div class="grid-card" onclick="showPage('contact')"><i class="fa fa-phone" style="color:#6c5ce7; font-size: 30px; margin-bottom: 10px;"></i><br>Contact</div>
         </div>
     </div>
 
-    <!-- Admission Page -->
     <div id="admission" class="page">
         <div class="card">
-            <h3><i class="fa fa-user-plus"></i> Student Admission</h3>
+            <h3><i class="fa fa-user-plus"></i> New Student Admission</h3>
             <input type="text" id="stuID" placeholder="Unique ID">
             <input type="text" id="stuName" placeholder="Full Name">
             <select id="stuClass">
+                <option value="" disabled selected>শ্রেণী নির্বাচন করুন</option>
                 <option value="6">Class 6</option>
                 <option value="7">Class 7</option>
                 <option value="8">Class 8</option>
@@ -108,57 +117,62 @@
                 <option value="Alim-1">Alim 1st Year</option>
                 <option value="Alim-2">Alim 2nd Year</option>
             </select>
-            <input type="text" id="stuMobile" placeholder="Parent's Mobile">
-            <button class="btn btn-primary" onclick="saveStudent()">Register Student</button>
+            <input type="text" id="stuMobile" placeholder="Parent's Mobile Number">
+            <button class="btn btn-success" onclick="saveStudent()"><i class="fa fa-check"></i> Register Student</button>
         </div>
     </div>
 
-    <!-- Records / Class-wise List -->
     <div id="records" class="page">
         <div class="card">
-            <h3><i class="fa fa-database"></i> Student Database</h3>
-            <select id="filterClass" onchange="loadStudents()">
+            <h3><i class="fa fa-database"></i> Student Records</h3>
+            <select id="filterClass" onchange="loadStudents()" style="margin-bottom: 15px;">
                 <option value="All">All Classes</option>
                 <option value="6">Class 6</option>
                 <option value="10">Class 10</option>
                 <option value="Alim-1">Alim 1st Year</option>
+                <option value="Alim-2">Alim 2nd Year</option>
             </select>
             <div style="overflow-x: auto;">
                 <table class="data-table">
-                    <thead><tr><th>ID</th><th>Name</th><th>Class</th><th>Action</th></tr></thead>
+                    <thead><tr><th>ID</th><th>Name</th><th>Class</th><th class="admin-only">Action</th></tr></thead>
                     <tbody id="studentList"></tbody>
                 </table>
             </div>
         </div>
     </div>
 
-    <!-- Teachers Page -->
     <div id="teachers" class="page">
         <div class="card">
-            <h3><i class="fa fa-briefcase"></i> Teacher List</h3>
+            <h3><i class="fa fa-chalkboard-teacher"></i> Staff & Teacher List</h3>
             <div id="teacherGrid" class="grid">
-                <!-- Data from JS -->
+                <p style="text-align:center; color:#888;">লোড হচ্ছে...</p>
             </div>
         </div>
-    </div>
-
-    <!-- Payment Page -->
-    <div id="payment" class="page">
-        <div class="card">
-            <h3><i class="fa fa-credit-card"></i> Fees & Payments</h3>
-            <p style="font-size: 13px; color: #666; margin-bottom: 10px;">Select a student and pay via bKash/Nagad.</p>
-            <input type="text" placeholder="Enter Student ID">
-            <input type="number" placeholder="Amount (BDT)">
-            <button class="btn btn-primary" style="background: #e2136e;">Pay with bKash</button>
+        
+        <div class="card admin-only">
+            <h3><i class="fa fa-user-plus"></i> Add New Teacher/Staff</h3>
+            <input type="text" id="tName" placeholder="Teacher Full Name">
+            <input type="text" id="tDesignation" placeholder="Designation (e.g. Principal, ICT Assistant)">
+            <input type="text" id="tSubject" placeholder="Subject (Optional)">
+            <button class="btn btn-success" onclick="saveTeacher()"><i class="fa fa-plus"></i> Add to List</button>
         </div>
     </div>
 
-    <!-- Contact Page -->
+    <div id="payment" class="page">
+        <div class="card">
+            <h3><i class="fa fa-credit-card"></i> Student Fees & Payments</h3>
+            <p style="font-size: 13px; color: #666; margin-bottom: 10px;">Select a student and pay online.</p>
+            <input type="text" placeholder="Enter Student ID">
+            <input type="number" placeholder="Amount (BDT)">
+            <button class="btn btn-primary" style="background: #e2136e;"><i class="fa fa-credit-card"></i> Pay with bKash</button>
+        </div>
+    </div>
+
     <div id="contact" class="page">
         <div class="card">
-            <h3><i class="fa fa-envelope"></i> Contact Institution</h3>
-            <p>Nangalkot, Comilla.</p>
-            <p>Mobile: 01xxxxxxxxx</p>
+            <h3><i class="fa fa-envelope"></i> Contact Majpara Alim Madrasha</h3>
+            <p><i class="fa fa-map-marker-alt" style="color:var(--primary);"></i> Nangalkot, Comilla.</p>
+            <p><i class="fa fa-phone" style="color:var(--primary);"></i> 018xxxxxxxx (Principal)</p>
             <textarea placeholder="Write your message here..."></textarea>
             <button class="btn btn-primary">Send Message</button>
         </div>
@@ -166,23 +180,25 @@
 
 </div>
 
-<!-- Bottom Navigation -->
 <nav class="bottom-nav">
     <button class="nav-item active" onclick="showPage('home', this)"><i class="fa fa-home"></i>Home</button>
-    <button class="nav-item" onclick="showPage('admission', this)"><i class="fa fa-plus-circle"></i>Add</button>
+    <button class="nav-item admin-only" onclick="showPage('admission', this)"><i class="fa fa-plus-circle"></i>Add</button>
     <button class="nav-item" onclick="showPage('records', this)"><i class="fa fa-list"></i>Records</button>
-    <button class="nav-item" onclick="showPage('teachers', this)"><i class="fa fa-user-tie"></i>Teachers</button>
+    <button class="nav-item" onclick="showPage('teachers', this)"><i class="fa fa-chalkboard-teacher"></i>Teachers</button>
     <button class="nav-item" onclick="showPage('payment', this)"><i class="fa fa-wallet"></i>Pay</button>
 </nav>
 
-<!-- Firebase SDKs (Version 8 for Mobile Stability) -->
+<button class="floating-action-btn admin-only" onclick="toggleAdminView()" id="floatingAdminBtn">
+    <i class="fa fa-user-shield"></i>
+</button>
+
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
 <script>
     // ১. ফায়ারবেজ সেটআপ (আপনার কনফিগারেশন এখানে দিন)
-    const firebaseConfig = {
+        const firebaseConfig = {
   apiKey: "AIzaSyBUtQ00RBIEPE247HRYIKguQ58vbx71Wk8",
   authDomain: "majpara-alim-madrasha.firebaseapp.com",
   databaseURL: "https://majpara-alim-madrasha-default-rtdb.firebaseio.com",
@@ -197,21 +213,34 @@
     const auth = firebase.auth();
     const db = firebase.database();
 
+    let isAdminLoggedIn = false;
+
     // ২. লগইন ও সাইন-আপ হ্যান্ডলার
     function handleAuth(type) {
         const email = document.getElementById('userEmail').value;
         const pass = document.getElementById('userPass').value;
-        if(!email || !pass) return alert("Email and Password required!");
+        if(!email || !pass) return alert("ইমেইল এবং পাসওয়ার্ড প্রয়োজন!");
 
         if(type === 'signup') {
             auth.createUserWithEmailAndPassword(email, pass)
                 .then(() => alert("Staff Account Created! Please Login."))
-                .catch(e => alert(e.message));
+                .catch(e => alert("সাইন-আপ সমস্যা: " + e.message));
         } else {
             auth.signInWithEmailAndPassword(email, pass)
-                .then(() => document.getElementById('authScreen').style.display = 'none')
-                .catch(e => alert(e.message));
+                .then((userCredential) => {
+                    // লগইন সফল হলে, অ্যাডমিন ফিচারগুলো অন করা
+                    isAdminLoggedIn = true;
+                    document.getElementById('authScreen').style.display = 'none';
+                    enableAdminFeatures(); // অ্যাডমিন ফিচার অন করা
+                    alert("সফলভাবে লগইন হয়েছে!");
+                })
+                .catch(e => alert("লগইন সমস্যা: " + e.message));
         }
+    }
+
+    // এডমিন ফিচারগুলো অন করার ফাংশন
+    function enableAdminFeatures() {
+        document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'flex');
     }
 
     // ৩. কানেকশন স্ট্যাটাস মনিটর
@@ -227,10 +256,12 @@
         }
     });
 
-    // ৪. পেজ নেভিগেশন
+    // ৪. পেজ নেভিগেশন (ডাইনামিক ড্যাশবোর্ড)
     function showPage(id, btn) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
-        document.getElementById(id).classList.add('active-page');
+        const activePage = document.getElementById(id);
+        if(activePage) activePage.classList.add('active-page');
+        
         document.getElementById('currentTabTitle').innerText = id.toUpperCase();
         
         if(btn) {
@@ -241,25 +272,30 @@
         if(id === 'teachers') loadTeachers();
     }
 
-    // ৫. স্টুডেন্ট ডাটা সেভ (ডাইনামিক ক্লাসসহ)
+    // ৫. স্টুডেন্ট ডাটা সেভ
     function saveStudent() {
+        if(!isAdminLoggedIn) return alert("লগইন না করে কিছু সেভ করা যাবে না!");
         const id = document.getElementById('stuID').value;
         const name = document.getElementById('stuName').value;
         const cls = document.getElementById('stuClass').value;
+        const mobile = document.getElementById('stuMobile').value;
         
-        if(!id || !name) return alert("Fill ID and Name");
+        if(!id || !name || !cls) return alert("ID, নাম এবং শ্রেণী নির্বাচন করুন");
 
         db.ref('students/' + id).set({
             name: name,
             class: cls,
-            mobile: document.getElementById('stuMobile').value
+            mobile: mobile
         }).then(() => {
-            alert("Student Registered Successfully!");
+            alert("ছাত্রের রেজিস্ট্রেশন সফল হয়েছে!");
+            document.getElementById('stuID').value = '';
+            document.getElementById('stuName').value = '';
+            document.getElementById('stuMobile').value = '';
             showPage('records');
-        });
+        }).catch(e => alert("সেভ হয়নি: " + e.message));
     }
 
-    // ৬. ক্লাস অনুযায়ী ফিল্টারিং এবং লোডিং
+    // ৬. ক্লাস অনুযায়ী ফিল্টারিং এবং ছাত্রদের তালিকা লোড করা
     function loadStudents() {
         const filter = document.getElementById('filterClass').value;
         const list = document.getElementById('studentList');
@@ -273,24 +309,76 @@
                         <td>${child.key}</td>
                         <td><b>${s.name}</b></td>
                         <td>Class ${s.class}</td>
-                        <td><i class="fa fa-trash" style="color:red" onclick="deleteStu('${child.key}')"></i></td>
+                        <td class="admin-only"><i class="fa fa-trash" style="color:red; cursor:pointer;" onclick="deleteStu('${child.key}')"></i></td>
                     </tr>`;
                 }
             });
+            // ডাটা লোড হওয়ার পর এডমিন ডিলিট বাটন দেখানো (যদি এডমিন লগইন থাকে)
+            if(isAdminLoggedIn) {
+                enableAdminFeatures();
+            }
         });
     }
 
     function deleteStu(id) {
-        if(confirm("Delete this record?")) db.ref('students/' + id).remove();
+        if(!isAdminLoggedIn) return alert("অনুগ্রহ করে লগইন করুন");
+        if(confirm("আপনি কি নিশ্চিতভাবে এই ডাটা ডিলিট করতে চান?")) db.ref('students/' + id).remove();
     }
 
+    // ৭. ডাইনামিক টিচার লোড ও ম্যানেজমেন্ট (শিক্ষক যোগ ও ডিলিট করা)
     function loadTeachers() {
         const grid = document.getElementById('teacherGrid');
-        grid.innerHTML = `
-            <div class="grid-card"><b>Principal</b><br>Maulana X</div>
-            <div class="grid-card"><b>ICT Assistant</b><br>Sharea Sobuj</div>
-        `;
+        
+        db.ref('teachers').on('value', (snap) => {
+            grid.innerHTML = "";
+            snap.forEach(child => {
+                const t = child.val();
+                let deleteBtn = isAdminLoggedIn ? `<button class="delete-teacher-btn" onclick="deleteTeacher('${child.key}')"><i class="fa fa-times"></i></button>` : '';
+                
+                grid.innerHTML += `
+                    <div class="teacher-card">
+                        ${deleteBtn}
+                        <b>${t.name}</b>
+                        <p>${t.designation}</p>
+                        ${t.subject ? `<p style="font-style:italic;">${t.subject}</p>` : ''}
+                    </div>
+                `;
+            });
+            // ডাটা লোড হওয়ার পর এডমিন ডিলিট বাটন দেখানো
+            if(isAdminLoggedIn) {
+                enableAdminFeatures();
+            }
+        });
     }
+
+    // নতুন শিক্ষক যোগ করা (অ্যাডমিন ফরম)
+    function saveTeacher() {
+        if(!isAdminLoggedIn) return alert("অনুগ্রহ করে লগইন করুন");
+        const name = document.getElementById('tName').value;
+        const designation = document.getElementById('tDesignation').value;
+        const subject = document.getElementById('tSubject').value;
+        
+        if(!name || !designation) return alert("নাম এবং পদবি অবশ্যই দিতে হবে");
+
+        db.ref('teachers').push({
+            name: name,
+            designation: designation,
+            subject: subject
+        }).then(() => {
+            alert("নতুন শিক্ষক সফলভাবে যোগ হয়েছে!");
+            document.getElementById('tName').value = '';
+            document.getElementById('tDesignation').value = '';
+            document.getElementById('tSubject').value = '';
+            loadTeachers();
+        }).catch(e => alert("যোগ হয়নি: " + e.message));
+    }
+
+    // শিক্ষক ডিলিট করা
+    function deleteTeacher(key) {
+        if(!isAdminLoggedIn) return alert("অনুগ্রহ করে লগইন করুন");
+        if(confirm("আপনি কি নিশ্চিতভাবে এই শিক্ষককে তালিকা থেকে ডিলিট করতে চান?")) db.ref('teachers/' + key).remove();
+    }
+
 </script>
 </body>
     </html>
