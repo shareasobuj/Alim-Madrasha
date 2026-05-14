@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Majpara Alim Madrasha Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <style>
+        :root { --p: #1a2a6c; --a: #00d2ff; --g: rgba(255,255,255,0.9); }
+        body { font-family: 'Outfit', sans-serif; background: #f0f2f5; margin: 0; padding: 0; }
+        .header { background: linear-gradient(to right, #1a2a6c, #b21f1f); color: white; padding: 20px; text-align: center; }
+        .nav { display: flex; overflow-x: auto; background: #fff; padding: 10px; gap: 10px; border-bottom: 2px solid #ddd; }
+        .nav button { padding: 10px 20px; border: none; border-radius: 20px; background: #eee; white-space: nowrap; font-weight: 600; }
+        .nav button.active { background: var(--p); color: white; }
+        .content { padding: 20px; }
+        .page { display: none; }
+        .active-page { display: block; }
+        .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        .btn { width: 100%; padding: 15px; background: var(--p); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
+        .status { padding: 10px; text-align: center; font-size: 14px; font-weight: bold; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h2>Majpara Alim Madrasha</h2>
+    <div id="status" class="status" style="color: #ffde00;">Connecting to Database...</div>
+</div>
+
+<div class="nav">
+    <button class="nav-btn active" onclick="showPage('home', this)">Home</button>
+    <button class="nav-btn" onclick="showPage('admission', this)">Admission</button>
+    <button class="nav-btn" onclick="showPage('list', this)">Records</button>
+</div>
+
+<div class="content">
+    <div id="home" class="page active-page">
+        <div class="card">
+            <h3>Welcome</h3>
+            <p>মাদ্রাসার সকল তথ্য এখান থেকে ম্যানেজ করুন।</p>
+        </div>
+    </div>
+
+    <div id="admission" class="page">
+        <div class="card">
+            <h3>Student Admission</h3>
+            <input type="text" id="sID" placeholder="Student ID (e.g. 101)">
+            <input type="text" id="sName" placeholder="Full Name">
+            <input type="text" id="sClass" placeholder="Class">
+            <button class="btn" onclick="saveData()">Save Student</button>
+        </div>
+    </div>
+
+    <div id="list" class="page">
+        <div class="card">
+            <h3>Registered Students</h3>
+            <div style="overflow-x:auto;">
+                <table>
+                    <thead><tr><th>ID</th><th>Name</th><th>Class</th></tr></thead>
+                    <tbody id="studentTable"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+<script>
+    // ১. আপনার ফায়ারবেজ কনফিগ এখানে বসান (খুব সাবধানে)
+    const firebaseConfig = {
+  apiKey: "AIzaSyBUtQ00RBIEPE247HRYIKguQ58vbx71Wk8",
+  authDomain: "majpara-alim-madrasha.firebaseapp.com",
+  databaseURL: "https://majpara-alim-madrasha-default-rtdb.firebaseio.com",
+  projectId: "majpara-alim-madrasha",
+  storageBucket: "majpara-alim-madrasha.firebasestorage.app",
+  messagingSenderId: "383841858474",
+  appId: "1:383841858474:web:2f7b3fcbf74f883da3f1d3",
+  measurementId: "G-RJL1EBS37F"
+};
+
+    // ২. ইনিশিয়ালাইজেশন এবং এরর হ্যান্ডলিং
+    try {
+        firebase.initializeApp(firebaseConfig);
+        var db = firebase.database();
+        console.log("Firebase OK");
+    } catch (e) {
+        alert("Firebase Config Error: " + e.message);
+    }
+
+    // ৩. কানেকশন চেক
+    db.ref(".info/connected").on("value", function(snap) {
+        const status = document.getElementById("status");
+        if (snap.val() === true) {
+            status.innerText = "● Systems Active (Online)";
+            status.style.color = "#00ff88";
+        } else {
+            status.innerText = "○ Offline / Connecting...";
+            status.style.color = "#ffde00";
+        }
+    });
+
+    // ৪. পেজ সুইচিং
+    function showPage(pageId, btn) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
+        document.getElementById(pageId).classList.add('active-page');
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        if(pageId === 'list') loadData();
+    }
+
+    // ৫. ডাটা সেভ করা
+    function saveData() {
+        const id = document.getElementById('sID').value;
+        const name = document.getElementById('sName').value;
+        const cls = document.getElementById('sClass').value;
+
+        if(!id || !name) return alert("ID এবং নাম অবশ্যই দিতে হবে!");
+
+        db.ref('students/' + id).set({
+            name: name,
+            class: cls
+        }).then(() => {
+            alert("সফলভাবে সেভ হয়েছে!");
+            document.getElementById('sID').value = "";
+            document.getElementById('sName').value = "";
+        }).catch(e => alert("Error: " + e.message));
+    }
+
+    // ৬. ডাটা লোড করা
+    function loadData() {
+        db.ref('students').on('value', (snap) => {
+            const tbody = document.getElementById('studentTable');
+            tbody.innerHTML = "";
+            snap.forEach(child => {
+                const data = child.val();
+                tbody.innerHTML += `<tr><td>${child.key}</td><td>${data.name}</td><td>${data.class}</td></tr>`;
+            });
+        });
+    }
+</script>
+
+</body>
+</html>
