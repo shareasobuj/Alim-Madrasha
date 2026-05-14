@@ -3,76 +3,185 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Majpara Alim Madrasha Portal</title>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600&display=swap" rel="stylesheet">
-    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <title>Majpara Alim Madrasha - Advanced Portal</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
     <style>
-        :root { --p: #1a2a6c; --a: #00d2ff; --g: rgba(255,255,255,0.9); }
-        body { font-family: 'Outfit', sans-serif; background: #f0f2f5; margin: 0; padding: 0; }
-        .header { background: linear-gradient(to right, #1a2a6c, #b21f1f); color: white; padding: 20px; text-align: center; }
-        .nav { display: flex; overflow-x: auto; background: #fff; padding: 10px; gap: 10px; border-bottom: 2px solid #ddd; }
-        .nav button { padding: 10px 20px; border: none; border-radius: 20px; background: #eee; white-space: nowrap; font-weight: 600; }
-        .nav button.active { background: var(--p); color: white; }
-        .content { padding: 20px; }
-        .page { display: none; }
+        :root { --primary: #1a2a6c; --secondary: #b21f1f; --accent: #00d2ff; --glass: rgba(255, 255, 255, 0.95); }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Outfit', sans-serif; }
+        body { background: #f4f7f6; color: #333; }
+
+        /* Header & Brand */
+        .top-header { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; padding: 25px 15px; text-align: center; position: sticky; top: 0; z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        .status-dot { height: 10px; width: 10px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+
+        /* Bottom Navigation for Mobile */
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: white; display: flex; justify-content: space-around; padding: 10px 0; box-shadow: 0 -2px 15px rgba(0,0,0,0.1); z-index: 1000; overflow-x: auto; }
+        .nav-item { border: none; background: none; color: #777; font-size: 12px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 5px; min-width: 60px; }
+        .nav-item i { font-size: 20px; }
+        .nav-item.active { color: var(--primary); font-weight: bold; }
+
+        /* Main Content */
+        .container { padding: 20px; padding-bottom: 80px; max-width: 800px; margin: auto; }
+        .page { display: none; animation: slideUp 0.4s ease; }
         .active-page { display: block; }
-        .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-        .btn { width: 100%; padding: 15px; background: var(--p); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
-        .status { padding: 10px; text-align: center; font-size: 14px; font-weight: bold; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        /* Modern UI Cards */
+        .card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); margin-bottom: 20px; border: 1px solid #eee; }
+        h3 { margin-bottom: 15px; color: var(--primary); display: flex; align-items: center; gap: 10px; }
+
+        /* Form Styling */
+        input, select, textarea { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 12px; outline: none; font-size: 15px; }
+        input:focus { border-color: var(--accent); }
+        .btn { width: 100%; padding: 15px; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; transition: 0.3s; margin-top: 10px; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { opacity: 0.9; transform: scale(0.98); }
+
+        /* Table & Lists */
+        .data-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
+        .data-table th { background: #f8f9fa; padding: 12px; text-align: left; border-bottom: 2px solid #eee; }
+        .data-table td { padding: 12px; border-bottom: 1px solid #eee; }
+
+        /* Grid for Teachers/Classes */
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .grid-card { background: #f8f9fa; padding: 15px; border-radius: 15px; text-align: center; cursor: pointer; }
+        
+        /* Auth Screen */
+        .auth-overlay { position: fixed; inset: 0; background: white; z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 20px; }
     </style>
 </head>
 <body>
 
-<div class="header">
-    <h2>Majpara Alim Madrasha</h2>
-    <div id="status" class="status" style="color: #ffde00;">Connecting to Database...</div>
+<!-- Login/Sign-up Overlay -->
+<div id="authScreen" class="auth-overlay">
+    <div class="card" style="width: 100%; max-width: 400px;">
+        <h2 style="text-align:center; color:var(--primary)">Staff Portal</h2>
+        <p style="text-align:center; font-size: 14px; margin-bottom: 20px;">মাজপাড়া আলিম মাদ্রাসা ডিজিটাল ম্যানেজমেন্ট</p>
+        <input type="email" id="userEmail" placeholder="Email Address">
+        <input type="password" id="userPass" placeholder="Password">
+        <button class="btn btn-primary" onclick="handleAuth('login')">Login</button>
+        <button class="btn" style="background:#eee" onclick="handleAuth('signup')">Create Account (Staff)</button>
+    </div>
 </div>
 
-<div class="nav">
-    <button class="nav-btn active" onclick="showPage('home', this)">Home</button>
-    <button class="nav-btn" onclick="showPage('admission', this)">Admission</button>
-    <button class="nav-btn" onclick="showPage('list', this)">Records</button>
+<!-- Main App Header -->
+<div class="top-header">
+    <h2 id="currentTabTitle">Home Dashboard</h2>
+    <div style="font-size: 12px; margin-top: 5px;">
+        <span id="statusDot" class="status-dot" style="background: #ccc;"></span>
+        <span id="statusText">Checking Connection...</span>
+    </div>
 </div>
 
-<div class="content">
+<div class="container">
+    
+    <!-- Home Page -->
     <div id="home" class="page active-page">
-        <div class="card">
-            <h3>Welcome</h3>
-            <p>মাদ্রাসার সকল তথ্য এখান থেকে ম্যানেজ করুন।</p>
+        <div class="card" style="background: linear-gradient(45deg, #1a2a6c, #3a7bd5); color: white;">
+            <h2>আসসালামু আলাইকুম</h2>
+            <p>মাদ্রাসার ডিজিটাল ড্যাশবোর্ডে আপনাকে স্বাগতম।</p>
+        </div>
+        <div class="grid">
+            <div class="grid-card" onclick="showPage('records')"><i class="fa fa-users"></i><br>Students</div>
+            <div class="grid-card" onclick="showPage('teachers')"><i class="fa fa-chalkboard-teacher"></i><br>Teachers</div>
+            <div class="grid-card" onclick="showPage('payment')"><i class="fa fa-wallet"></i><br>Fees</div>
+            <div class="grid-card" onclick="showPage('contact')"><i class="fa fa-phone"></i><br>Help</div>
         </div>
     </div>
 
+    <!-- Admission Page -->
     <div id="admission" class="page">
         <div class="card">
-            <h3>Student Admission</h3>
-            <input type="text" id="sID" placeholder="Student ID (e.g. 101)">
-            <input type="text" id="sName" placeholder="Full Name">
-            <input type="text" id="sClass" placeholder="Class">
-            <button class="btn" onclick="saveData()">Save Student</button>
+            <h3><i class="fa fa-user-plus"></i> Student Admission</h3>
+            <input type="text" id="stuID" placeholder="Unique ID">
+            <input type="text" id="stuName" placeholder="Full Name">
+            <select id="stuClass">
+                <option value="6">Class 6</option>
+                <option value="7">Class 7</option>
+                <option value="8">Class 8</option>
+                <option value="9">Class 9</option>
+                <option value="10">Class 10</option>
+                <option value="Alim-1">Alim 1st Year</option>
+                <option value="Alim-2">Alim 2nd Year</option>
+            </select>
+            <input type="text" id="stuMobile" placeholder="Parent's Mobile">
+            <button class="btn btn-primary" onclick="saveStudent()">Register Student</button>
         </div>
     </div>
 
-    <div id="list" class="page">
+    <!-- Records / Class-wise List -->
+    <div id="records" class="page">
         <div class="card">
-            <h3>Registered Students</h3>
-            <div style="overflow-x:auto;">
-                <table>
-                    <thead><tr><th>ID</th><th>Name</th><th>Class</th></tr></thead>
-                    <tbody id="studentTable"></tbody>
+            <h3><i class="fa fa-database"></i> Student Database</h3>
+            <select id="filterClass" onchange="loadStudents()">
+                <option value="All">All Classes</option>
+                <option value="6">Class 6</option>
+                <option value="10">Class 10</option>
+                <option value="Alim-1">Alim 1st Year</option>
+            </select>
+            <div style="overflow-x: auto;">
+                <table class="data-table">
+                    <thead><tr><th>ID</th><th>Name</th><th>Class</th><th>Action</th></tr></thead>
+                    <tbody id="studentList"></tbody>
                 </table>
             </div>
         </div>
     </div>
+
+    <!-- Teachers Page -->
+    <div id="teachers" class="page">
+        <div class="card">
+            <h3><i class="fa fa-briefcase"></i> Teacher List</h3>
+            <div id="teacherGrid" class="grid">
+                <!-- Data from JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Page -->
+    <div id="payment" class="page">
+        <div class="card">
+            <h3><i class="fa fa-credit-card"></i> Fees & Payments</h3>
+            <p style="font-size: 13px; color: #666; margin-bottom: 10px;">Select a student and pay via bKash/Nagad.</p>
+            <input type="text" placeholder="Enter Student ID">
+            <input type="number" placeholder="Amount (BDT)">
+            <button class="btn btn-primary" style="background: #e2136e;">Pay with bKash</button>
+        </div>
+    </div>
+
+    <!-- Contact Page -->
+    <div id="contact" class="page">
+        <div class="card">
+            <h3><i class="fa fa-envelope"></i> Contact Institution</h3>
+            <p>Nangalkot, Comilla.</p>
+            <p>Mobile: 01xxxxxxxxx</p>
+            <textarea placeholder="Write your message here..."></textarea>
+            <button class="btn btn-primary">Send Message</button>
+        </div>
+    </div>
+
 </div>
 
+<!-- Bottom Navigation -->
+<nav class="bottom-nav">
+    <button class="nav-item active" onclick="showPage('home', this)"><i class="fa fa-home"></i>Home</button>
+    <button class="nav-item" onclick="showPage('admission', this)"><i class="fa fa-plus-circle"></i>Add</button>
+    <button class="nav-item" onclick="showPage('records', this)"><i class="fa fa-list"></i>Records</button>
+    <button class="nav-item" onclick="showPage('teachers', this)"><i class="fa fa-user-tie"></i>Teachers</button>
+    <button class="nav-item" onclick="showPage('payment', this)"><i class="fa fa-wallet"></i>Pay</button>
+</nav>
+
+<!-- Firebase SDKs (Version 8 for Mobile Stability) -->
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
 <script>
-    // ১. আপনার ফায়ারবেজ কনফিগ এখানে বসান (খুব সাবধানে)
+    // ১. ফায়ারবেজ সেটআপ (আপনার কনফিগারেশন এখানে দিন)
     const firebaseConfig = {
   apiKey: "AIzaSyBUtQ00RBIEPE247HRYIKguQ58vbx71Wk8",
   authDomain: "majpara-alim-madrasha.firebaseapp.com",
@@ -84,66 +193,104 @@
   measurementId: "G-RJL1EBS37F"
 };
 
-    // ২. ইনিশিয়ালাইজেশন এবং এরর হ্যান্ডলিং
-    try {
-        firebase.initializeApp(firebaseConfig);
-        var db = firebase.database();
-        console.log("Firebase OK");
-    } catch (e) {
-        alert("Firebase Config Error: " + e.message);
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.database();
+
+    // ২. লগইন ও সাইন-আপ হ্যান্ডলার
+    function handleAuth(type) {
+        const email = document.getElementById('userEmail').value;
+        const pass = document.getElementById('userPass').value;
+        if(!email || !pass) return alert("Email and Password required!");
+
+        if(type === 'signup') {
+            auth.createUserWithEmailAndPassword(email, pass)
+                .then(() => alert("Staff Account Created! Please Login."))
+                .catch(e => alert(e.message));
+        } else {
+            auth.signInWithEmailAndPassword(email, pass)
+                .then(() => document.getElementById('authScreen').style.display = 'none')
+                .catch(e => alert(e.message));
+        }
     }
 
-    // ৩. কানেকশন চেক
-    db.ref(".info/connected").on("value", function(snap) {
-        const status = document.getElementById("status");
+    // ৩. কানেকশন স্ট্যাটাস মনিটর
+    db.ref(".info/connected").on("value", (snap) => {
+        const dot = document.getElementById('statusDot');
+        const text = document.getElementById('statusText');
         if (snap.val() === true) {
-            status.innerText = "● Systems Active (Online)";
-            status.style.color = "#00ff88";
+            dot.style.background = "#00ff88";
+            text.innerText = "Online - Majpara Alim Madrasha";
         } else {
-            status.innerText = "○ Offline / Connecting...";
-            status.style.color = "#ffde00";
+            dot.style.background = "#ffde00";
+            text.innerText = "Connecting...";
         }
     });
 
-    // ৪. পেজ সুইচিং
-    function showPage(pageId, btn) {
+    // ৪. পেজ নেভিগেশন
+    function showPage(id, btn) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
-        document.getElementById(pageId).classList.add('active-page');
-        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        if(pageId === 'list') loadData();
+        document.getElementById(id).classList.add('active-page');
+        document.getElementById('currentTabTitle').innerText = id.toUpperCase();
+        
+        if(btn) {
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            btn.classList.add('active');
+        }
+        if(id === 'records') loadStudents();
+        if(id === 'teachers') loadTeachers();
     }
 
-    // ৫. ডাটা সেভ করা
-    function saveData() {
-        const id = document.getElementById('sID').value;
-        const name = document.getElementById('sName').value;
-        const cls = document.getElementById('sClass').value;
-
-        if(!id || !name) return alert("ID এবং নাম অবশ্যই দিতে হবে!");
+    // ৫. স্টুডেন্ট ডাটা সেভ (ডাইনামিক ক্লাসসহ)
+    function saveStudent() {
+        const id = document.getElementById('stuID').value;
+        const name = document.getElementById('stuName').value;
+        const cls = document.getElementById('stuClass').value;
+        
+        if(!id || !name) return alert("Fill ID and Name");
 
         db.ref('students/' + id).set({
             name: name,
-            class: cls
+            class: cls,
+            mobile: document.getElementById('stuMobile').value
         }).then(() => {
-            alert("সফলভাবে সেভ হয়েছে!");
-            document.getElementById('sID').value = "";
-            document.getElementById('sName').value = "";
-        }).catch(e => alert("Error: " + e.message));
+            alert("Student Registered Successfully!");
+            showPage('records');
+        });
     }
 
-    // ৬. ডাটা লোড করা
-    function loadData() {
+    // ৬. ক্লাস অনুযায়ী ফিল্টারিং এবং লোডিং
+    function loadStudents() {
+        const filter = document.getElementById('filterClass').value;
+        const list = document.getElementById('studentList');
+        
         db.ref('students').on('value', (snap) => {
-            const tbody = document.getElementById('studentTable');
-            tbody.innerHTML = "";
+            list.innerHTML = "";
             snap.forEach(child => {
-                const data = child.val();
-                tbody.innerHTML += `<tr><td>${child.key}</td><td>${data.name}</td><td>${data.class}</td></tr>`;
+                const s = child.val();
+                if(filter === "All" || s.class === filter) {
+                    list.innerHTML += `<tr>
+                        <td>${child.key}</td>
+                        <td><b>${s.name}</b></td>
+                        <td>Class ${s.class}</td>
+                        <td><i class="fa fa-trash" style="color:red" onclick="deleteStu('${child.key}')"></i></td>
+                    </tr>`;
+                }
             });
         });
     }
-</script>
 
+    function deleteStu(id) {
+        if(confirm("Delete this record?")) db.ref('students/' + id).remove();
+    }
+
+    function loadTeachers() {
+        const grid = document.getElementById('teacherGrid');
+        grid.innerHTML = `
+            <div class="grid-card"><b>Principal</b><br>Maulana X</div>
+            <div class="grid-card"><b>ICT Assistant</b><br>Sharea Sobuj</div>
+        `;
+    }
+</script>
 </body>
-</html>
+    </html>
